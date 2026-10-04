@@ -2,7 +2,7 @@
   "name": "com.screencrowstudios.crowtoolkit",
   "version": "1.0.0",
   "displayName": "Crow Toolkit",
-  "description": "An awesome Toolkit!",
+  "description": "Useful tools for Unity.",
   "unity": "2019.1",
   "unityRelease": "0b5",
   "documentationUrl": "https://example.com/",
