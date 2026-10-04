@@ -1,3 +1,12 @@
+// ===========================================================================
+//
+//  FILE:    AtlasExporter.cs
+//  DESC:    Adds a Menu Item that exports the Texture Atlas of a selected 
+//           .psd file. The Texture Atlas is used to create secondary
+//           textures (usually in different software like SpriteIlluminator).
+//
+// ===========================================================================
+
 using UnityEngine;
 using UnityEditor;
 using System.IO;
@@ -8,12 +17,11 @@ public static class PSDAtlasExporter
     [MenuItem("Assets/Export Atlas from PSD", true)]
     private static bool ValidateExport()
     {
-        // Only enable if a PSD is selected
         var path = AssetDatabase.GetAssetPath(Selection.activeObject);
-        return path.EndsWith(".psd", System.StringComparison.OrdinalIgnoreCase);
+        return !string.IsNullOrEmpty(path) && path.EndsWith(".psd", System.StringComparison.OrdinalIgnoreCase);
     }
 
-    [MenuItem("Assets/Export Texture Atlas")]
+    [MenuItem("Assets/Export Atlas from PSD")]
     private static void ExportAtlasFromPSD()
     {
         string path = AssetDatabase.GetAssetPath(Selection.activeObject);
@@ -23,45 +31,81 @@ public static class PSDAtlasExporter
             return;
         }
 
-        // Load the texture Unity generated from this PSD
-        Texture2D sourceTex = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
-        if (sourceTex == null)
+        PSDImporter importer = AssetImporter.GetAtPath(path) as PSDImporter;
+        if (importer == null)
         {
-            Debug.LogError("Could not load texture from PSD: " + path);
+            Debug.LogError("Selected asset is not a valid PSD file managed by PSDImporter: " + path);
             return;
         }
 
-        // Copy texture into readable format
-        string tempPath = AssetDatabase.GetAssetPath(sourceTex);
-        PSDImporter importer = AssetImporter.GetAtPath(tempPath) as PSDImporter;
-        bool wasReadable = importer.isReadable;
-        if (!wasReadable)
-        {
-            importer.isReadable = true;
-            importer.SaveAndReimport();
-        }
+        // Cache initial state
+        bool originalIsReadable = importer.isReadable;
+        TextureImporterPlatformSettings defaultSettings = importer.GetImporterPlatformSettings(BuildTarget.NoTarget);
+        TextureImporterCompression originalCompression = defaultSettings.textureCompression;
 
-        // Encode to PNG
-        byte[] pngData = sourceTex.EncodeToPNG();
-        if (pngData != null)
+        bool needsReimport = !originalIsReadable || originalCompression != TextureImporterCompression.Uncompressed;
+
+        try
         {
-            string savePath = EditorUtility.SaveFilePanel("Save Atlas as PNG", "", Path.GetFileNameWithoutExtension(path) + "_atlas.png", "png");
-            if (!string.IsNullOrEmpty(savePath))
+            if (needsReimport)
             {
-                File.WriteAllBytes(savePath, pngData);
-                Debug.Log("Atlas exported to: " + savePath);
+                importer.isReadable = true;
+                
+                // Modify compression settings and apply
+                defaultSettings.textureCompression = TextureImporterCompression.Uncompressed;
+                importer.SetImporterPlatformSettings(defaultSettings);
+
+                importer.SaveAndReimport();
+            }
+
+            // Load generated texture atlas
+            Texture2D sourceTex = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+            if (sourceTex == null)
+            {
+                Debug.LogError("Could not load Texture2D from PSD path: " + path);
+                return;
+            }
+
+            // Encode to PNG format
+            byte[] pngData = sourceTex.EncodeToPNG();
+            if (pngData != null)
+            {
+                string savePath = EditorUtility.SaveFilePanel(
+                    "Save Atlas as PNG",
+                    "",
+                    Path.GetFileNameWithoutExtension(path) + "_atlas.png",
+                    "png"
+                );
+
+                if (!string.IsNullOrEmpty(savePath))
+                {
+                    File.WriteAllBytes(savePath, pngData);
+                    Debug.Log("Atlas successfully exported to: " + savePath);
+                    AssetDatabase.Refresh();
+                }
+            }
+            else
+            {
+                Debug.LogError("Failed to encode texture to PNG.");
             }
         }
-        else
+        finally
         {
-            Debug.LogError("Failed to encode texture to PNG.");
-        }
+            // Revert settings
+            if (needsReimport)
+            {
+                PSDImporter revertImporter = AssetImporter.GetAtPath(path) as PSDImporter;
+                if (revertImporter != null)
+                {
+                    revertImporter.isReadable = originalIsReadable;
+                    
+                    TextureImporterPlatformSettings revertSettings = revertImporter.GetImporterPlatformSettings(BuildTarget.NoTarget);
+                    revertSettings.textureCompression = originalCompression;
+                    revertImporter.SetImporterPlatformSettings(revertSettings);
 
-        // Restore original import settings
-        if (!wasReadable)
-        {
-            importer.isReadable = false;
-            importer.SaveAndReimport();
+                    revertImporter.SaveAndReimport();
+                }
+            }
         }
     }
 }
