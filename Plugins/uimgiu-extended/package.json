@@ -1,0 +1,23 @@
+{
+  "name": "com.ycatdev.uimgui.extended",
+  "displayName": "UImGui Extended",
+  "version": "6.0.0",
+  "description": "Extended Unity wrapper for ImGUI.NET",
+  "unity": "2019.4",
+  "dependencies": {
+  },
+  "keywords": [
+    "dear",
+    "imgui",
+    "ui"
+  ],
+  "author": {
+    "name": "yCatDev",
+    "url": "https://github.com/ycatdev"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yCatDev/uimgui-extended",
+    "revision": ""
+  }
+}
