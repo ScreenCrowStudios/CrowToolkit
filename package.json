@@ -20,5 +20,10 @@
     "name": "ScreenCrow Studios",
     "email": "screencrowstudios@screencrowstudios.com",
     "url": "https://screencrowstudios.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ScreenCrowStudios/CrowToolkit",
+    "revision": ""
   }
 }
