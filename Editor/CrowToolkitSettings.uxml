@@ -1,8 +1,0 @@
-<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <Style src="project://database/Packages/com.screencrowstudios.crowtoolkit/Editor/CrowToolkitSettings.uss?fileID=7433441132597879392&amp;guid=4a68720a76175685fa1f8787c0370a6d&amp;type=3#CrowToolkitSettings"/>
-    <ui:TabView>
-        <ui:Tab label="Logger" name="">
-            <ui:IntegerField label="Max Log Amount" value="15" enabled="true" password="false" focusable="true" name="max-log-amount" readonly="false" style="height: 39px; align-items: flex-start; opacity: 1;"/>
-        </ui:Tab>
-    </ui:TabView>
-</ui:UXML>
